@@ -49,16 +49,9 @@ class SimpleTransformer:
         # TODO: make sure make sure that all columns names are included.
         return df.rename(columns=self.rename_schema)[self.rename_schema.values()]
 
-    def _transform_dates(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Transfrom dates from strings to date objects
-        # TODO: make use of pd.to_datetime
-        df["application_end_date"] = df["application_end_date"].apply(
-            lambda datestr: date.fromisoformat(datestr) if pd.notna(datestr) else None
-        )
-        return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df.pipe(self._rename_columns).pipe(self._transform_dates)
+        return df.pipe(self._rename_columns)# .pipe(self._transform_dates)
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         return self.transform(df=df)
