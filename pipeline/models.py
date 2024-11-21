@@ -9,6 +9,7 @@ Base = declarative_base()
 
 # Define the model
 class VantaaOpenApplications(Base):
+    # TODO: do we need testing for this?
     __tablename__ = TABLE_NAME
     id = Column(Integer, primary_key=True, autoincrement=True)
     field = Column(String, nullable=False)

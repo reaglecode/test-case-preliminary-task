@@ -18,8 +18,10 @@ class SimpleExtractor:
         )
 
     def extract(self) -> pd.DataFrame:
+        # TODO: test if response is 200
         response = self.fetch_data()
         response.raise_for_status()
+        # TODO: implement pd.json_normalise(). Validate data types using pydantic
         return pd.DataFrame(response.json())
 
     def __call__(self) -> pd.DataFrame:
@@ -28,6 +30,7 @@ class SimpleExtractor:
 
 class SimpleTransformer:
     def __init__(self):
+        # TODO make transformer as a configuation file to validate data type of the received columns
         self.rename_schema = {
             "id": "id",
             "ammattiala": "field",
@@ -42,10 +45,13 @@ class SimpleTransformer:
 
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         # Rename based on the defined schema and drop irrelevant fields
+        # TODO: make sure all column names exist
+        # TODO: make sure make sure that all columns names are included.
         return df.rename(columns=self.rename_schema)[self.rename_schema.values()]
 
     def _transform_dates(self, df: pd.DataFrame) -> pd.DataFrame:
         # Transfrom dates from strings to date objects
+        # TODO: make use of pd.to_datetime
         df["application_end_date"] = df["application_end_date"].apply(
             lambda datestr: date.fromisoformat(datestr) if pd.notna(datestr) else None
         )
@@ -67,6 +73,8 @@ class SimpleLoader:
         # Load data into database inside session
         session = orm.sessionmaker(bind=self.engine)
         with session() as sess:
+            # TODO: Compare the pd to SQL method to the implementation in this code.
+            # df.to_sql(VantaaOpenApplications.__name__, con = sess, if_exists="replace")
             sess.bulk_save_objects(
                 [VantaaOpenApplications(**row) for row in df.to_dict(orient="records")]
             )
