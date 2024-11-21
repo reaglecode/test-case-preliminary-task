@@ -31,4 +31,3 @@ class TestSimpleTransformer():
         df = SimpleTransformer()(df=df)
         assert len(df.columns) <= len(VantaaOpenApplications_colnames.values())
 
-class TestSimpleLoader():
