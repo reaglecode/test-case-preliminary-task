@@ -23,11 +23,8 @@ class SimpleExtractor:
 
 
     def extract(self) -> pd.DataFrame:
-        # TODO: test if response is 200
         response = self.fetch_data()
         response.raise_for_status()
-        # TODO: implement pd.json_normalise(). Validate data types using pydantic
-        # TODO: add error handling
         adapter = TypeAdapter(OpenApplication)
 
         validated_items = [adapter.validate_python(x).dict() for x in response.json()]
@@ -45,10 +42,7 @@ class SimpleTransformer:
 
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         # Rename based on the defined schema and drop irrelevant fields
-        # TODO: make sure all column names exist
-        # TODO: make sure make sure that all columns names are included.
         return df.rename(columns=self.rename_schema)[self.rename_schema.values()]
-
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.pipe(self._rename_columns)# .pipe(self._transform_dates)
