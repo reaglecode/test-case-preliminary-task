@@ -16,6 +16,12 @@ class SimpleExtractor:
 
 
     def fetch_data(self):
+        """Testing API connection
+        >>> extractor = SimpleExtractor()
+        >>> response = extractor.fetch_data()
+        >>> response.status_code == 200
+        True
+        """
         return requests.get(
             url=self.api_url,
             headers={"Content-Type": "application/json"},
@@ -27,7 +33,8 @@ class SimpleExtractor:
         response.raise_for_status()
         adapter = TypeAdapter(OpenApplication)
 
-        validated_items = [adapter.validate_python(x).dict() for x in response.json()]
+        # validating the records data types:
+        validated_items = [adapter.validate_python(x).model_dump() for x in response.json()]
         return pd.json_normalize(validated_items)
 
 
