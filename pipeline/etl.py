@@ -54,18 +54,13 @@ class SimpleTransformer:
 class SimpleLoader:
     def __init__(self, conn_str: str):
         # Setup Engine
+        # TODO: test the engine connection
         self.engine = create_engine(conn_str)
 
     def load(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Load data into database inside session
-        session = orm.sessionmaker(bind=self.engine)
-        with session() as sess:
-            # TODO: Compare the pd to SQL method to the implementation in this code.
-            # df.to_sql(VantaaOpenApplications.__name__, con = sess, if_exists="replace")
-            sess.bulk_save_objects(
-                [VantaaOpenApplications(**row) for row in df.to_dict(orient="records")]
-            )
-            sess.commit()
+        with self.engine.connect() as conn:
+            df.to_sql(VantaaOpenApplications.__name__, con = conn, if_exists="replace")
+            conn.commit()
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         self.load(df=df)
