@@ -2,3 +2,5 @@ tmp/
 rekryenv/
 *.db
 **/__pycache__
+.venv/
+.idea/
