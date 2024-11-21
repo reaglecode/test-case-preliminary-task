@@ -8,17 +8,19 @@ from icecream import ic
 
 from .const import API_URL
 from .models import VantaaOpenApplications, OpenApplication
-
+from .config import VantaaOpenApplications_colnames
 
 class SimpleExtractor:
     def __init__(self):
         self.api_url = API_URL
+
 
     def fetch_data(self):
         return requests.get(
             url=self.api_url,
             headers={"Content-Type": "application/json"},
         )
+
 
     def extract(self) -> pd.DataFrame:
         # TODO: test if response is 200
@@ -31,24 +33,15 @@ class SimpleExtractor:
         validated_items = [adapter.validate_python(x).dict() for x in response.json()]
         return pd.json_normalize(validated_items)
 
+
     def __call__(self) -> pd.DataFrame:
         return self.extract()
 
 
 class SimpleTransformer:
     def __init__(self):
-        # TODO make transformer as a configuation file to validate data type of the received columns
-        self.rename_schema = {
-            "id": "id",
-            "ammattiala": "field",
-            "tyotehtava": "job_title",
-            "tyoavain": "job_key",
-            "osoite": "address",
-            "haku_paattyy_pvm": "application_end_date",
-            "x": "longitude_wgs84",
-            "y": "latitude_wgs84",
-            "linkki": "link",
-        }
+        self.rename_schema = VantaaOpenApplications_colnames
+
 
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         # Rename based on the defined schema and drop irrelevant fields
