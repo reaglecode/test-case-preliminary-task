@@ -3,8 +3,11 @@ import requests
 from sqlalchemy import create_engine, orm
 from datetime import date
 
+from pydantic import TypeAdapter
+from icecream import ic
+
 from .const import API_URL
-from .models import VantaaOpenApplications
+from .models import VantaaOpenApplications, OpenApplication
 
 
 class SimpleExtractor:
@@ -22,7 +25,11 @@ class SimpleExtractor:
         response = self.fetch_data()
         response.raise_for_status()
         # TODO: implement pd.json_normalise(). Validate data types using pydantic
-        return pd.DataFrame(response.json())
+        # TODO: add error handling
+        adapter = TypeAdapter(OpenApplication)
+
+        validated_items = [adapter.validate_python(x).dict() for x in response.json()]
+        return pd.json_normalize(validated_items)
 
     def __call__(self) -> pd.DataFrame:
         return self.extract()
