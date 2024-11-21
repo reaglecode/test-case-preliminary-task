@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, Date
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from pydantic import BaseModel, ValidationError, field_validator, ConfigDict
 
-from typing import Optional, List
+from typing import Optional
 from datetime import date
 
 
@@ -47,8 +47,7 @@ class OpenApplication(BaseModel):
                 return parsed_date
             except ValueError:
                 raise ValidationError(
-                    f"'{val}' is not a valid date. Please provide a date in YYYY-MM-DD format.",
-                    type="invalid_date"
+                    f"'{val}' is not a valid date. Please provide a date in YYYY-MM-DD format."
                 )
         if val is None:
             return None
