@@ -1,5 +1,10 @@
 from sqlalchemy import Column, Integer, String, Float, Date
 from sqlalchemy.ext.declarative import declarative_base
+from pydantic import BaseModel, ValidationError, field_validator, ConfigDict
+
+from typing import Optional, List
+from datetime import date
+
 
 from .const import TABLE_NAME 
 
@@ -20,3 +25,32 @@ class VantaaOpenApplications(Base):
     latitude_wgs84 = Column(Float, nullable=False)
     application_end_date = Column(Date, nullable=True)
     link = Column(String, nullable=False)
+
+class OpenApplication(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+
+    id: int
+    ammattiala: str
+    tyotehtava: str
+    tyoavain: str
+    osoite: str
+    x: float
+    y: float
+    haku_paattyy_pvm: Optional[date]
+    linkki: str
+
+    @field_validator('haku_paattyy_pvm', mode='before')
+    def validate_date(cls, val):
+        if isinstance(val, str):
+            try:
+                parsed_date = date.fromisoformat(val)
+                return parsed_date
+            except ValueError:
+                raise ValidationError(
+                    f"'{val}' is not a valid date. Please provide a date in YYYY-MM-DD format.",
+                    type="invalid_date"
+                )
+        if val is None:
+            return None
+        else:
+            raise ValueError(f"Input must be either a date object or a valid date string, got {type(val)} instead.")
