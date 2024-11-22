@@ -1,12 +1,11 @@
 from sqlalchemy import Column, Integer, String, Float, Date
 from sqlalchemy.orm import declarative_base
-from pydantic import BaseModel, ValidationError, field_validator, ConfigDict
+from pydantic import BaseModel, ValidationError, field_validator, ConfigDict, confloat
 
 from typing import Optional
 from datetime import date
 
-
-from .const import TABLE_NAME 
+from .const import TABLE_NAME
 
 # Define the base model class
 Base = declarative_base()
@@ -26,16 +25,18 @@ class VantaaOpenApplications(Base):
     application_end_date = Column(Date, nullable=True)
     link = Column(String, nullable=False)
 
+
 class OpenApplication(BaseModel):
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='ignore')  # this is for the columns received but we are not storing them in the database.
 
     id: int
     ammattiala: str
     tyotehtava: str
     tyoavain: str
     osoite: str
-    x: float
-    y: float
+    # These constraints are to make sure data is at least within bounding box of Vantaa
+    x: confloat(gt=24.7462358484138747, lt=25.1930682902584984, strict=True)
+    y: confloat(gt=60.2372175528625178, lt=60.4012548544924215, strict=True)
     haku_paattyy_pvm: Optional[date]
     linkki: str
 
@@ -47,7 +48,7 @@ class OpenApplication(BaseModel):
                 return parsed_date
             except ValueError:
                 raise ValidationError(
-                    f"'{val}' is not a valid date. Please provide a date in YYYY-MM-DD format."
+                    f"'{val}' is not a valid date. Please provide a date in ISO format."
                 )
         if val is None:
             return None
