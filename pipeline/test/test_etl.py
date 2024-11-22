@@ -17,14 +17,15 @@ class TestSimpleExtractor():
 
 class TestSimpleTransformer():
     def test_rename_schema(self):
-        """Checking if correct schema is selected."""
+        """Checking if correct schema is selected.
+        :return: None
+        """
         df = SimpleTransformer()
         assert VantaaOpenApplications_colnames == df.rename_schema
 
     def test_column_renames(self):
         """This test is based on the assumption that column selection raises no errors,
         which means that the count of columns should be less than equal to the provided schema configuration.
-
         :return: None
         """
         df = SimpleExtractor()()
