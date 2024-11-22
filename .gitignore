@@ -3,4 +3,7 @@ rekryenv/
 *.db
 **/__pycache__
 .venv/
+.vscode/
 .idea/
+/.idea/
+/.venv/
