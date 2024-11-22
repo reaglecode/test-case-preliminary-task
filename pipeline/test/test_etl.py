@@ -1,6 +1,5 @@
 import pytest
-from sqlalchemy import orm
-from ..etl import SimpleExtractor, SimpleTransformer, SimpleLoader
+from ..etl import SimpleExtractor, SimpleTransformer
 from ..config import VantaaOpenApplications_colnames
 
 
@@ -31,4 +30,3 @@ class TestSimpleTransformer():
         df = SimpleExtractor()()
         df = SimpleTransformer()(df=df)
         assert len(df.columns) <= len(VantaaOpenApplications_colnames.values())
-
