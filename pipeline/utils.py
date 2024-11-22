@@ -2,8 +2,7 @@ from sqlalchemy import create_engine
 from .models import VantaaOpenApplications
 import os
 
-# TODO do we need to test this?
-# What could go wrong here? test it. If things went smoothly, then there is no need for test.
+
 def initialize_database(conn_str: str):
     try:
         engine = create_engine(conn_str)

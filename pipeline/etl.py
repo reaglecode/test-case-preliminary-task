@@ -4,16 +4,15 @@ from sqlalchemy import create_engine, orm
 from datetime import date
 
 from pydantic import TypeAdapter
-from icecream import ic
 
 from .const import API_URL
 from .models import VantaaOpenApplications, OpenApplication
 from .config import VantaaOpenApplications_colnames
 
-class SimpleExtractor:
-    def __init__(self):
-        self.api_url = API_URL
 
+class SimpleExtractor:
+    def __init__(self) -> None:
+        self.api_url = API_URL
 
     def fetch_data(self):
         """Testing API connection
@@ -27,8 +26,9 @@ class SimpleExtractor:
             headers={"Content-Type": "application/json"},
         )
 
-
     def extract(self) -> pd.DataFrame:
+        adapter = TypeAdapter(OpenApplication)
+        
         response = self.fetch_data()
         response.raise_for_status()
         adapter = TypeAdapter(OpenApplication)
