@@ -1,26 +1,38 @@
 import pandas as pd
 import requests
-from sqlalchemy import create_engine, orm
-from datetime import date
+from sqlalchemy import create_engine
+from pydantic import TypeAdapter
 
 from .const import API_URL
-from .models import VantaaOpenApplications
+from .models import VantaaOpenApplications, OpenApplication
+from .config import VantaaOpenApplications_colnames
 
 
 class SimpleExtractor:
-    def __init__(self):
+    def __init__(self) -> None:
         self.api_url = API_URL
 
     def fetch_data(self):
+        """Testing API connection
+        >>> extractor = SimpleExtractor()
+        >>> response = extractor.fetch_data()
+        >>> response.status_code == 200
+        True
+        """
         return requests.get(
             url=self.api_url,
             headers={"Content-Type": "application/json"},
         )
 
     def extract(self) -> pd.DataFrame:
+        adapter = TypeAdapter(OpenApplication)
+        
         response = self.fetch_data()
         response.raise_for_status()
-        return pd.DataFrame(response.json())
+
+        # validating the records data types:
+        validated_items = [adapter.validate_python(x).model_dump() for x in response.json()]
+        return pd.json_normalize(validated_items)
 
     def __call__(self) -> pd.DataFrame:
         return self.extract()
@@ -28,51 +40,35 @@ class SimpleExtractor:
 
 class SimpleTransformer:
     def __init__(self):
-        self.rename_schema = {
-            "id": "id",
-            "ammattiala": "field",
-            "tyotehtava": "job_title",
-            "tyoavain": "job_key",
-            "osoite": "address",
-            "haku_paattyy_pvm": "application_end_date",
-            "x": "longitude_wgs84",
-            "y": "latitude_wgs84",
-            "linkki": "link",
-        }
+        self.rename_schema = VantaaOpenApplications_colnames
 
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         # Rename based on the defined schema and drop irrelevant fields
         return df.rename(columns=self.rename_schema)[self.rename_schema.values()]
 
-    def _transform_dates(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Transfrom dates from strings to date objects
-        df["application_end_date"] = df["application_end_date"].apply(
-            lambda datestr: date.fromisoformat(datestr) if pd.notna(datestr) else None
-        )
-        return df
-
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df.pipe(self._rename_columns).pipe(self._transform_dates)
+        return df.pipe(self._rename_columns)# .pipe(self._transform_dates)
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         return self.transform(df=df)
 
 
 class SimpleLoader:
-    def __init__(self, conn_str: str):
+    def __init__(self, conn_str: str) -> None:
         # Setup Engine
+        # TODO: test the engine connection
         self.engine = create_engine(conn_str)
 
-    def load(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Load data into database inside session
-        session = orm.sessionmaker(bind=self.engine)
-        with session() as sess:
-            sess.bulk_save_objects(
-                [VantaaOpenApplications(**row) for row in df.to_dict(orient="records")]
-            )
-            sess.commit()
+    def load(self, df: pd.DataFrame) -> None:
+        with self.engine.connect() as conn:
+            df.to_sql(
+                name=VantaaOpenApplications.__name__,
+                con=conn,
+                if_exists="replace"  # this argument needs to be adjusted accordingly
+                )
+            conn.commit()
 
-    def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
+    def __call__(self, df: pd.DataFrame) -> None:
         self.load(df=df)
 
 
